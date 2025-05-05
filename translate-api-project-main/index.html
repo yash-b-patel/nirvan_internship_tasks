@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        textarea,
+        select,
+        button {
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        textarea {
+            height: 100px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Text Translator</h1>
+    <textarea id="inputText" placeholder="Enter text to translate..."></textarea>
+    <select id="targetLanguage">
+        <option value="es">Spanish</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="zh">Chinese</option>
+        <option value="hi">Hindi</option>
+    </select>
+    <button onclick="translateText()">Translate</button>
+    <div id="output">Translation will appear here.</div>
+
+    <script>
+        function translateText() {
+            const inputText = document.getElementById("inputText").value;
+            const targetLanguage = document.getElementById("targetLanguage").value;
+
+            if (!inputText.trim()) {
+                alert("Please enter some text to translate.");
+                return;
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.withCredentials = true;
+
+            // Set up endpoint for Microsoft Translator Text Translate endpoint
+            const data = JSON.stringify({
+                "text": [inputText],
+                "to": [targetLanguage]
+            });
+
+            xhr.addEventListener('readystatechange', function () {
+                if (this.readyState === this.DONE) {
+                    if (this.status === 200) {
+                        // Parse JSON response
+                        const response = JSON.parse(this.responseText);
+                        console.log(response); // Log to console
+                        document.getElementById("output").textContent = response[0];
+                    } else {
+                        document.getElementById("output").textContent = "Error fetching translation.";
+                    }
+                }
+            });
+
+            xhr.open('GET', 'https://microsoft-translator-text.p.rapidapi.com/languages?api-version=3.0');
+            xhr.setRequestHeader('x-rapidapi-key', '1df2975e20mshed84cfb204f12c0p19a285jsn0086a237379f');
+            xhr.setRequestHeader('x-rapidapi-host', 'microsoft-translator-text.p.rapidapi.com');
+            console.log(data);
+            xhr.send(data);
+
+        }
+    </script>
+</body>
+
+</html>

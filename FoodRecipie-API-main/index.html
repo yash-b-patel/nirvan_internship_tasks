@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .recipe-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .recipe-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .recipe-summary {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .recipe-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .recipe-ingredients {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .recipe-ingredients ul {
+            list-style-type: square;
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search-bar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Recipe Search</h1>
+    <div class="search-bar">
+        <input type="text" id="recipeInput" placeholder="Enter recipe name...">
+        <button id="searchButton">Search</button>
+    </div>
+    <div id="demo" class="recipe-container"></div>
+
+    <script>
+        const output = document.getElementById("demo");
+        const searchButton = document.getElementById("searchButton");
+        const recipeInput = document.getElementById("recipeInput");
+        const apikey = "Your Api Key";
+
+        searchButton.addEventListener("click", () => {
+            const query = recipeInput.value.trim();
+            if (query) {
+                const searchURL = `https://api.spoonacular.com/recipes/complexSearch?query=${query}&apiKey=${apikey}&number=1`;
+                searchRecipe(searchURL);
+            } else {
+                output.innerHTML = "<p>Please enter a recipe name.</p>";
+            }
+        });
+
+        function searchRecipe(url) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.results && response.results.length > 0) {
+                            const recipeId = response.results[0].id;
+                            fetchRecipeDetails(recipeId);
+                        } else {
+                            output.innerHTML = "<p>No recipes found. Try a different search term.</p>";
+                        }
+                    } else {
+                        output.innerHTML = "<p>An error occurred. Please try again later.</p>";
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+
+        function fetchRecipeDetails(recipeId) {
+            const recipeURL = `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apikey}`;
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", recipeURL, true);
+
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        displayRecipe(response);
+                    } else {
+                        output.innerHTML = "<p>An error occurred while fetching recipe details.</p>";
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+
+        function displayRecipe(data) {
+            const html = `
+                <div class="recipe-title">${data.title}</div>
+                <div class="recipe-image">
+                    <img src="${data.image}" alt="${data.title}">
+                </div>
+                <div class="recipe-summary">${data.summary}</div>
+                <div class="recipe-ingredients">
+                    <h3>Ingredients:</h3>
+                    <ul>
+                        ${data.extendedIngredients.map(ingredient => `<li>${ingredient.original}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            output.innerHTML = html;
+        }
+    </script>
+</body>
+
+</html>
